@@ -45,6 +45,7 @@
       justify-content: center;
       align-items: center;
       transition: background-color 0.3s ease-in-out;
+      cursor: pointer;
     }
 
     .circle-text {
@@ -124,6 +125,7 @@
     const themeButton = document.getElementById('themeButton');
     const transcriptDisplay = document.getElementById('transcriptDisplay');
     let isLightTheme = true;
+    let isListening = false;
 
     themeButton.addEventListener('click', () => {
       if (isLightTheme) {
@@ -165,6 +167,63 @@
 
     let hasSpoken = false;
 
+    // Speech Recognition Setup
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map(result => result[0].transcript)
+        .join('');
+
+      transcriptDisplay.textContent = transcript;
+
+      if (transcript.toLowerCase().includes('sophie')) {
+        if (!hasSpoken) {
+          speak("Hello there! How can I help you?");
+          hasSpoken = true;
+        }
+      } else if (transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire')) {
+        const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+        if (!hasSpoken) {
+          speak(randomQuote);
+          hasSpoken = true;
+        }
+      } else {
+        hasSpoken = false;
+      }
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        recognition.start();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Recognition error:', event.error);
+      recognition.stop();
+      if (isListening) {
+        recognition.start();
+      }
+    };
+
+    // Toggle Speech Recognition on Circle Click
+    circle.addEventListener('click', () => {
+      if (isListening) {
+        recognition.stop();
+        isListening = false;
+        circleText.textContent = 'Sophie';
+      } else {
+        recognition.start();
+        isListening = true;
+        circleText.textContent = 'Listening...';
+      }
+    });
+
+    // Microphone Animation
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -192,50 +251,6 @@
         console.error('Error accessing microphone:', error);
         alert('Microphone access is required for the animation.');
       });
-    }
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.interimResults = true;
-      recognition.continuous = true;
-
-      recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('');
-
-        transcriptDisplay.textContent = transcript;
-
-        if (transcript.toLowerCase().includes('sophie')) {
-          if (!hasSpoken) {
-            speak("Hello there! How can I help you?");
-            hasSpoken = true;
-          }
-        } else if ((transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire'))) {
-          const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-          if (!hasSpoken) {
-            speak(randomQuote);
-            hasSpoken = true;
-          }
-        } else {
-          hasSpoken = false;
-        }
-      };
-
-      recognition.onend = () => {
-        recognition.start();
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Recognition error:', event.error);
-        recognition.stop();
-        recognition.start();
-      };
-
-      recognition.start();
-    } else {
-      alert('Speech recognition is not supported in this browser.');
     }
   </script>
 </body>
