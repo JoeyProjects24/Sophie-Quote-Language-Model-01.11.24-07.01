@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sophie Language Model</title>
+  <title>Interactive Circle with Voice Trigger</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
   <style>
     body {
@@ -45,7 +45,6 @@
       justify-content: center;
       align-items: center;
       transition: background-color 0.3s ease-in-out;
-      cursor: pointer;
     }
 
     .circle-text {
@@ -72,19 +71,8 @@
       bottom: 20px;
     }
 
-    .transcript-display {
-      font-size: 1rem;
-      color: #333;
-      margin-top: 20px;
-      max-width: 80%;
-      text-align: center;
-      word-wrap: break-word;
-      padding: 10px;
-      background-color: #f1f1f1;
-      border-radius: 10px;
-    }
    
-    @media (max-width: 600px) {
+ @media (max-width: 600px) {
       .outer-ring {
         width: 250px;
         height: 250px;
@@ -96,17 +84,19 @@
       }
 
       .circle-text {
-        font-size: 32px;
+        font-size: 32px; /* Smaller font size on mobile */
         font-weight: 100;
       }
 
       .theme-button {
         width: 35px;
         height: 35px;
-        font-size: 1rem;
+        font-size: 1rem; /* Smaller button on mobile */
         top: 80%;
       }
     }
+
+
   </style>
 </head>
 <body>
@@ -119,16 +109,13 @@
   </div>
 
   <button class="theme-button" id="themeButton">🔆</button>
-  <div class="transcript-display" id="transcriptDisplay">Say something...</div>
 
   <script>
     const outerRing = document.getElementById('outerRing');
     const circle = document.getElementById('circle');
     const circleText = document.getElementById('circleText');
     const themeButton = document.getElementById('themeButton');
-    const transcriptDisplay = document.getElementById('transcriptDisplay');
     let isLightTheme = true;
-    let isListening = false;
 
     themeButton.addEventListener('click', () => {
       if (isLightTheme) {
@@ -170,63 +157,6 @@
 
     let hasSpoken = false;
 
-    // Speech Recognition Setup
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
-    recognition.interimResults = true;
-    recognition.continuous = true;
-
-    recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map(result => result[0].transcript)
-        .join('');
-
-      transcriptDisplay.textContent = transcript;
-
-      if (transcript.toLowerCase().includes('sophie')) {
-        if (!hasSpoken) {
-          speak("Hello there! How can I help you?");
-          hasSpoken = true;
-        }
-      } else if (transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire')) {
-        const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-        if (!hasSpoken) {
-          speak(randomQuote);
-          hasSpoken = true;
-        }
-      } else {
-        hasSpoken = false;
-      }
-    };
-
-    recognition.onend = () => {
-      if (isListening) {
-        recognition.start();
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error('Recognition error:', event.error);
-      recognition.stop();
-      if (isListening) {
-        recognition.start();
-      }
-    };
-
-    // Toggle Speech Recognition on Circle Click
-    circle.addEventListener('click', () => {
-      if (isListening) {
-        recognition.stop();
-        isListening = false;
-        circleText.textContent = 'Sophie';
-      } else {
-        recognition.start();
-        isListening = true;
-        circleText.textContent = 'Listening...';
-      }
-    });
-
-    // Microphone Animation
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -243,8 +173,8 @@
           const volume = Math.max(...dataArray);
 
           const borderWidth = Math.min(Math.max(volume / 10, 3), 25);
-          outerRing.style.borderWidth = `${borderWidth}px`;
-          outerRing.style.boxShadow = `0 0 ${borderWidth * 2}px rgba(51, 51, 51, 0.3)`;
+          outerRing.style.borderWidth = ${borderWidth}px;
+          outerRing.style.boxShadow = 0 0 ${borderWidth * 2}px rgba(51, 51, 51, 0.3);
 
           requestAnimationFrame(animateOuterRing);
         }
@@ -254,6 +184,46 @@
         console.error('Error accessing microphone:', error);
         alert('Microphone access is required for the animation.');
       });
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
+
+        if (transcript.toLowerCase().includes('sophie')) {
+          if (!hasSpoken) {
+            speak("Hello there! How can I help you?");
+            hasSpoken = true; // Set flag to prevent duplicate responses
+          }
+        } else if ((transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire'))) {
+          const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+          if (!hasSpoken) {
+            speak(randomQuote);
+            hasSpoken = true; // Set flag to prevent duplicate responses
+          }
+        } else {
+          hasSpoken = false; // Reset flag for new inputs
+        }
+      };
+
+      recognition.onend = () => {
+        recognition.start();
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Recognition error:', event.error);
+        recognition.stop();
+      };
+
+      recognition.start();
+    } else {
+      alert('Speech recognition is not supported in this browser.');
     }
   </script>
 </body>
