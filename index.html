@@ -23,8 +23,6 @@
       justify-content: center;
       align-items: center;
       flex: 1;
-      flex-direction: column;
-      text-align: center;
     }
 
     .outer-ring {
@@ -73,14 +71,15 @@
       bottom: 20px;
     }
 
-    .transcript {
-      font-size: 1.2rem;
+    .transcript-display {
+      font-size: 1rem;
       color: #333;
       margin-top: 20px;
-      width: 80%;
-      transition: color 0.3s ease-in-out;
+      max-width: 80%;
+      text-align: center;
+      word-wrap: break-word;
     }
-
+   
     @media (max-width: 600px) {
       .outer-ring {
         width: 250px;
@@ -93,18 +92,15 @@
       }
 
       .circle-text {
-        font-size: 1.3rem;
+        font-size: 32px;
+        font-weight: 100;
       }
 
       .theme-button {
         width: 35px;
         height: 35px;
         font-size: 1rem;
-        bottom: 10px;
-      }
-
-      .transcript {
-        font-size: 1rem;
+        top: 80%;
       }
     }
   </style>
@@ -116,17 +112,17 @@
         <div class="circle-text" id="circleText">Sophie</div>
       </div>
     </div>
-    <div class="transcript" id="transcript">Speak to Sophie...</div>
   </div>
 
   <button class="theme-button" id="themeButton">🌙</button>
+  <div class="transcript-display" id="transcriptDisplay"></div>
 
   <script>
     const outerRing = document.getElementById('outerRing');
     const circle = document.getElementById('circle');
     const circleText = document.getElementById('circleText');
     const themeButton = document.getElementById('themeButton');
-    const transcriptDisplay = document.getElementById('transcript');
+    const transcriptDisplay = document.getElementById('transcriptDisplay');
     let isLightTheme = true;
 
     themeButton.addEventListener('click', () => {
@@ -135,7 +131,6 @@
         outerRing.style.borderColor = '#fff';
         circle.style.backgroundColor = '#fff';
         circleText.style.color = '#1877f2';
-        transcriptDisplay.style.color = '#fff';
         themeButton.style.backgroundColor = '#fff';
         themeButton.style.color = '#333';
       } else {
@@ -143,7 +138,6 @@
         outerRing.style.borderColor = '#333';
         circle.style.backgroundColor = '#1877f2';
         circleText.style.color = '#fff';
-        transcriptDisplay.style.color = '#333';
         themeButton.style.backgroundColor = '#333';
         themeButton.style.color = '#fff';
       }
@@ -204,27 +198,28 @@
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = 'en-US';
       recognition.interimResults = true;
+      recognition.continuous = true;
 
       recognition.onresult = (event) => {
         const transcript = Array.from(event.results)
           .map(result => result[0].transcript)
           .join('');
 
-        transcriptDisplay.textContent = transcript; // Display spoken text
+        transcriptDisplay.textContent = transcript;
 
         if (transcript.toLowerCase().includes('sophie')) {
           if (!hasSpoken) {
             speak("Hello there! How can I help you?");
-            hasSpoken = true; 
+            hasSpoken = true;
           }
         } else if ((transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire'))) {
           const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
           if (!hasSpoken) {
             speak(randomQuote);
-            hasSpoken = true; 
+            hasSpoken = true;
           }
         } else {
-          hasSpoken = false; 
+          hasSpoken = false;
         }
       };
 
@@ -235,6 +230,7 @@
       recognition.onerror = (event) => {
         console.error('Recognition error:', event.error);
         recognition.stop();
+        recognition.start();
       };
 
       recognition.start();
