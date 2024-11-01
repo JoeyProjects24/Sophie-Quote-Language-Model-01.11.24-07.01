@@ -71,8 +71,7 @@
       bottom: 20px;
     }
 
-   
- @media (max-width: 600px) {
+    @media (max-width: 600px) {
       .outer-ring {
         width: 250px;
         height: 250px;
@@ -84,19 +83,17 @@
       }
 
       .circle-text {
-        font-size: 32px; /* Smaller font size on mobile */
+        font-size: 32px;
         font-weight: 100;
       }
 
       .theme-button {
         width: 35px;
         height: 35px;
-        font-size: 1rem; /* Smaller button on mobile */
-        top: 80%;
+        font-size: 1rem;
+        bottom: 15px; /* Adjusted for better positioning on mobile */
       }
     }
-
-
   </style>
 </head>
 <body>
@@ -213,18 +210,17 @@
       };
 
       recognition.onend = () => {
-        recognition.start();
+        recognition.start(); // Restart recognition when it ends
       };
 
       recognition.onerror = (event) => {
         console.error('Recognition error:', event.error);
-        recognition.stop();
       };
 
-      recognition.start();
+      recognition.start(); // Start recognition
     } else {
       alert('Speech recognition is not supported in this browser.');
     }
   </script>
 </body>
-</html> 
+</html>
