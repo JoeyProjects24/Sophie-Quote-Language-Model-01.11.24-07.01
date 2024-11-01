@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Circle with Voice Trigger</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
+      background-color: #fff;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .center-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+
+    .outer-ring {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 3px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .circle {
+      width: 180px;
+      height: 180px;
+      background-color: #1877f2;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .circle-text {
+      font-size: 1.5rem;
+      color: white;
+      text-align: center;
+      transition: color 0.3s ease-in-out;
+    }
+
+    .theme-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #333;
+      color: white;
+      font-size: 1.2rem;
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+      position: absolute;
+      bottom: 20px;
+    }
+
+   
+ @media (max-width: 600px) {
+      .outer-ring {
+        width: 250px;
+        height: 250px;
+      }
+
+      .circle {
+        width: 230px;
+        height: 230px;
+      }
+
+      .circle-text {
+        font-size: 32px; /* Smaller font size on mobile */
+        font-weight: 100;
+      }
+
+      .theme-button {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem; /* Smaller button on mobile */
+        top: 80%;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="center-container">
+    <div class="outer-ring" id="outerRing">
+      <div class="circle" id="circle">
+        <div class="circle-text" id="circleText">Sophie</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="theme-button" id="themeButton">🌙</button>
+
+  <script>
+    const outerRing = document.getElementById('outerRing');
+    const circle = document.getElementById('circle');
+    const circleText = document.getElementById('circleText');
+    const themeButton = document.getElementById('themeButton');
+    let isLightTheme = true;
+
+    themeButton.addEventListener('click', () => {
+      if (isLightTheme) {
+        document.body.style.backgroundColor = '#333';
+        outerRing.style.borderColor = '#fff';
+        circle.style.backgroundColor = '#fff';
+        circleText.style.color = '#1877f2';
+        themeButton.style.backgroundColor = '#fff';
+        themeButton.style.color = '#333';
+      } else {
+        document.body.style.backgroundColor = '#fff';
+        outerRing.style.borderColor = '#333';
+        circle.style.backgroundColor = '#1877f2';
+        circleText.style.color = '#fff';
+        themeButton.style.backgroundColor = '#333';
+        themeButton.style.color = '#fff';
+      }
+      isLightTheme = !isLightTheme;
+    });
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+    }
+
+    const motivationalQuotes = [
+      "The only way to do great work is to love what you do. by Steve Jobs",
+      "You are never too old to set another goal or to dream a new dream. by C.S. Lewis",
+      "Believe you can and you're halfway there. by Theodore Roosevelt",
+      "The future belongs to those who believe in the beauty of their dreams. by Eleanor Roosevelt",
+      "Your limitation—it's only your imagination. by Unknown",
+      "Push yourself, because no one else is going to do it for you. by Unknown",
+      "Great things never come from comfort zones. by Unknown",
+      "Dream it. Wish it. Do it. by Unknown",
+      "Success doesn’t just find you. You have to go out and get it. by Unknown",
+      "The harder you work for something, the greater you’ll feel when you achieve it. by Unknown"
+    ];
+
+    let hasSpoken = false;
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(stream);
+
+        microphone.connect(analyser);
+        analyser.fftSize = 256;
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function animateOuterRing() {
+          analyser.getByteFrequencyData(dataArray);
+          const volume = Math.max(...dataArray);
+
+          const borderWidth = Math.min(Math.max(volume / 10, 3), 25);
+          outerRing.style.borderWidth = `${borderWidth}px`;
+          outerRing.style.boxShadow = `0 0 ${borderWidth * 2}px rgba(51, 51, 51, 0.3)`;
+
+          requestAnimationFrame(animateOuterRing);
+        }
+
+        animateOuterRing();
+      }).catch((error) => {
+        console.error('Error accessing microphone:', error);
+        alert('Microphone access is required for the animation.');
+      });
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
+
+        if (transcript.toLowerCase().includes('sophie')) {
+          if (!hasSpoken) {
+            speak("Hello there! How can I help you?");
+            hasSpoken = true; // Set flag to prevent duplicate responses
+          }
+        } else if ((transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire'))) {
+          const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+          if (!hasSpoken) {
+            speak(randomQuote);
+            hasSpoken = true; // Set flag to prevent duplicate responses
+          }
+        } else {
+          hasSpoken = false; // Reset flag for new inputs
+        }
+      };
+
+      recognition.onend = () => {
+        recognition.start();
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Recognition error:', event.error);
+        recognition.stop();
+      };
+
+      recognition.start();
+    } else {
+      alert('Speech recognition is not supported in this browser.');
+    }
+  </script>
+</body>
+</html> 
