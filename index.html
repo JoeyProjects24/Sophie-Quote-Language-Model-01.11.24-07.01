@@ -71,8 +71,7 @@
       bottom: 20px;
     }
 
-   
- @media (max-width: 600px) {
+    @media (max-width: 600px) {
       .outer-ring {
         width: 250px;
         height: 250px;
@@ -95,8 +94,6 @@
         top: 80%;
       }
     }
-
-
   </style>
 </head>
 <body>
@@ -155,6 +152,19 @@
       "The harder you work for something, the greater you’ll feel when you achieve it. by Unknown"
     ];
 
+    const keywordsMeaning = {
+      "confidence": "A feeling of certainty about one’s skills or qualities.",
+      "believe": "To trust in something or someone’s abilities, including oneself.",
+      "fearless": "Facing challenges without fear or showing strength in difficult situations.",
+      "persevere": "To keep going, even when faced with obstacles or difficulties.",
+      "strength": "The quality of being powerful physically or mentally; resilience in the face of hardship.",
+      "hope": "A feeling of expectation and desire for a positive outcome in the future.",
+      "positivity": "The practice of focusing on good aspects, maintaining an upbeat or hopeful outlook.",
+      "ambition": "A strong desire to achieve something paired with the will to pursue it actively.",
+      "success": "The accomplishment of an aim or purpose, typically bringing satisfaction and pride."
+      // Add more keywords as necessary
+    };
+
     let hasSpoken = false;
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -196,18 +206,33 @@
           .map(result => result[0].transcript)
           .join('');
 
-        if (transcript.toLowerCase().includes('sophie')) {
+        const lowerCaseTranscript = transcript.toLowerCase();
+
+        if (lowerCaseTranscript.includes('sophie')) {
           if (!hasSpoken) {
             speak("Hello there! How can I help you?");
             hasSpoken = true; // Set flag to prevent duplicate responses
           }
-        } else if ((transcript.toLowerCase().includes('motivate') || transcript.toLowerCase().includes('inspire'))) {
+        } else if (lowerCaseTranscript.includes('motivate') || lowerCaseTranscript.includes('inspire')) {
           const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
           if (!hasSpoken) {
             speak(randomQuote);
             hasSpoken = true; // Set flag to prevent duplicate responses
           }
         } else {
+          // Check for keywords and provide meanings
+          for (const keyword in keywordsMeaning) {
+            if (lowerCaseTranscript.includes(keyword)) {
+              if (!hasSpoken) {
+                speak(keywordsMeaning[keyword]);
+                hasSpoken = true; // Set flag to prevent duplicate responses
+              }
+              break; // Exit loop after first match
+            }
+          }
+        }
+
+        if (!lowerCaseTranscript.includes('sophie') && !lowerCaseTranscript.includes('motivate') && !Object.keys(keywordsMeaning).some(keyword => lowerCaseTranscript.includes(keyword))) {
           hasSpoken = false; // Reset flag for new inputs
         }
       };
@@ -227,4 +252,4 @@
     }
   </script>
 </body>
-</html> 
+</html>
